@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Store with Cart & Auth & Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        /* Fix for product card images */
+        .card-img-top {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: 0.375rem;
+            border-top-right-radius: 0.375rem;
+        }
+
+        /* Sidebar Cart Item Images */
+        #cart-sidebar .list-group-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        #cart-items .list-group-item {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Header -->
+    <header class="navbar navbar-expand bg-primary text-white px-4">
+        <a class="navbar-brand text-white" href="#">My Store</a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <button id="login-btn" class="btn btn-outline-light btn-sm">Login</button>
+            <button id="register-btn" class="btn btn-outline-light btn-sm">Register</button>
+            <button id="signout-btn" class="btn btn-outline-warning btn-sm d-none">Sign Out</button>
+            <button id="cart-toggle" class="btn btn-outline-light position-relative">
+                <i class="bi bi-cart3"></i>
+                <span id="cart-count"
+                    class="badge bg-danger position-absolute top-0 start-100 translate-middle">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 container py-4">
+        <div class="row align-items-stretch" id="product-list"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center p-3 mt-auto">
+        <small>&copy; 2025 My Store. All rights reserved.</small>
+    </footer>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="position-fixed top-0 end-0 vh-100 bg-white shadow p-4"
+        style="width:320px; display:none; z-index:1050">
+        <h5>Your Cart</h5>
+        <div id="cart-items" class="list-group mb-3"></div>
+        <div class="d-flex justify-content-between fw-bold">Total: ₹<span id="cart-total">0.00</span></div>
+        <button id="buy-btn" class="btn btn-success w-100 mt-3">Buy Now</button>
+        <button id="close-cart" class="btn btn-secondary w-100 mt-2">Close</button>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal fade" id="auth-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content p-3">
+                <h5 id="auth-modal-title">Login</h5>
+                <input id="auth-email" class="form-control mb-2" type="email" placeholder="Email">
+                <input id="auth-pass" class="form-control mb-2" type="password" placeholder="Password">
+                <div class="modal-footer p-0">
+                    <button id="auth-cancel" class="btn btn-secondary">Cancel</button>
+                    <button id="auth-submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirm-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h5 class="modal-title"><i class="bi bi-cart-check-fill me-2"></i>Confirm Purchase</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="fs-5 mb-3">Are you sure you want to buy these items?</p>
+        <i class="bi bi-bag-check-fill fs-1 text-primary mb-3"></i>
+        <div class="d-flex justify-content-center gap-3">
+          <button id="confirm-cancel" type="button" class="btn btn-outline-secondary px-4">Cancel</button>
+          <button id="confirm-pay" type="button" class="btn btn-primary px-4 fw-semibold">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="modal fade" id="payment-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"> <!-- centered vertically -->
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-success text-white rounded-top-4">
+        <h5 class="modal-title"><i class="bi bi-credit-card-2-front-fill me-2"></i>Payment Confirmation</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="fs-5 mb-4">Please confirm your payment of:</p>
+        <div class="alert alert-success fs-4 fw-bold" role="alert" id="final-price-text">Total: ₹0.00</div>
+        <p>Click <strong>Pay</strong> to complete your purchase or <strong>Cancel</strong> to go back.</p>
+        <i class="bi bi-lock-fill fs-1 text-success"></i>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button id="payment-cancel" type="button" class="btn btn-outline-secondary px-4">Cancel</button>
+        <button id="payment-confirm" type="button" class="btn btn-success px-4 fw-semibold">Pay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Payment Success Modal -->
+   <div class="modal fade" id="success-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-success text-white rounded-top-4">
+        <h5 class="modal-title"><i class="bi bi-check-circle-fill me-2"></i>Payment Successful!</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="fs-5 mb-4">Thank you for your purchase.</p>
+        <i class="bi bi-emoji-smile-fill fs-1 text-success"></i>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Toast for add-to-cart -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+        <div id="cart-toast" class="toast align-items-center text-white bg-success border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">Product added to cart!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
